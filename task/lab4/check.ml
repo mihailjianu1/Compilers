@@ -292,6 +292,15 @@ let check_dupcases vs =
           chk rest in
   chk (List.sort compare vs)
 
+(* check if an element of a for list is well defined *)
+let check_elem elem env =
+  match elem with
+      Arithmetic e -> 
+        let t = check_expr e env in
+        if not (same_type t integer) then
+          sem_error "type mismatch in for exression" []
+    | _ -> sem_error "not yet" []
+
 (* |check_stmt| -- check and annotate a statement *)
 let rec check_stmt s env alloc =
   err_line := s.s_line;
@@ -363,9 +372,15 @@ let rec check_stmt s env alloc =
         let d = make_def (intern "*upb*") VarDef integer in
         alloc d; upb := Some d
 
-    (*| ForStmtE (var, ls, body) ->
-        let vt = check_expr var env in*)
-        
+    | ForStmtE (var, ls, body) ->
+        let vt = check_expr var env in
+        let t = List.map (fun d -> check_elem d env) ls in
+        if not (same_type vt integer) then
+          sem_error "type mismatch in for statement" [];
+        if List.length t = 0 then
+          sem_error "no init values in for" [];
+        check_var var false;
+        check_stmt body env alloc
 
     | CaseStmt (sel, arms, deflt) ->
         let st = check_expr sel env in

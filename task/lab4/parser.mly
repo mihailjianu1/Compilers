@@ -21,7 +21,7 @@ open Tree
 /* keywords */
 %token                  ARRAY BEGIN CONST DO ELSE END IF OF
 %token                  PROC RECORD RETURN THEN TO TYPE
-%token                  VAR WHILE NOT POINTER NIL
+%token                  VAR WHILE NOT POINTER NIL STEP
 %token                  REPEAT UNTIL FOR ELSIF CASE
 
 %type <Tree.program>    program
@@ -131,6 +131,8 @@ for_list :
 
 element :
     expr                                { Arithmetic ($1) }
+  | expr WHILE expr                     { While ($1, $3) }
+  | expr STEP expr UNTIL expr           { Step ($1, $3, $5) }
 
 elses :
     /* empty */                         { makeStmt (Skip, 0) }

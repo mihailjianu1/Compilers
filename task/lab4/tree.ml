@@ -43,6 +43,8 @@ and stmt_guts =
 
 and element = 
     Arithmetic of expr
+  | While of expr * expr
+  | Step of expr * expr * expr
 
 and expr = 
   { e_guts: expr_guts; 

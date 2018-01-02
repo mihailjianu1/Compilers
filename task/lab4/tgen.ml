@@ -318,6 +318,8 @@ let rec gen_stmt s =
             <STOREW, <BINOP Plus, gen_expr var, <CONST 1>>, gen_addr var>,
             <JUMP l1>,
             <LABEL l2>>
+      
+      | ForStmt (var, ls, body) ->
 
       | CaseStmt (sel, arms, deflt) ->
           (* Use one jump table, and hope it is reasonably compact *)
