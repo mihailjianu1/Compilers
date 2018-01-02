@@ -363,6 +363,10 @@ let rec check_stmt s env alloc =
         let d = make_def (intern "*upb*") VarDef integer in
         alloc d; upb := Some d
 
+    (*| ForStmtE (var, ls, body) ->
+        let vt = check_expr var env in*)
+        
+
     | CaseStmt (sel, arms, deflt) ->
         let st = check_expr sel env in
         if not (scalar st) then

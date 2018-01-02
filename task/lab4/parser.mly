@@ -130,7 +130,7 @@ for_list :
   | element COMMA for_list              { $1 :: $3 }
 
 element :
-    expr                                { $1 }
+    expr                                { Arithmetic ($1) }
 
 elses :
     /* empty */                         { makeStmt (Skip, 0) }
