@@ -120,7 +120,17 @@ stmt1 :
   | FOR name ASSIGN expr TO expr DO stmts END 
                                         { let v = makeExpr (Variable $2) in
                                           ForStmt (v, $4, $6, $8, ref None) } 
+  | FOR name ASSIGN for_list DO stmts END
+                                        { let v = makeExpr (Variable $2) in
+                                          ForStmtE(v, $4, $6) }
   | CASE expr OF arms else_part END     { CaseStmt ($2, $4, $5) } ;
+
+for_list :
+    element                             { [$1] }
+  | element COMMA for_list              { $1 :: $3 }
+
+element :
+    expr                                { $1 }
 
 elses :
     /* empty */                         { makeStmt (Skip, 0) }

@@ -38,6 +38,7 @@ and stmt_guts =
   | WhileStmt of expr * stmt
   | RepeatStmt of stmt * expr
   | ForStmt of expr * expr * expr * stmt * def option ref
+  | ForStmtE of expr * expr list * stmt
   | CaseStmt of expr * (expr * stmt) list * stmt
 
 and expr = 
@@ -144,6 +145,7 @@ and fStmt s =
     | CaseStmt (sel, arms, deflt) ->
         let fArm (lab, body) = fMeta "($ $)" [fExpr lab; fStmt body] in
         fMeta "(CASE $ $ $)" [fExpr sel; fList(fArm) arms; fStmt deflt]
+    | _ -> fStr "???"
 
 and fExpr e =
   match e.e_guts with
