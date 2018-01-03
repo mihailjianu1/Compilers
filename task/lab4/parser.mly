@@ -122,7 +122,7 @@ stmt1 :
                                           ForStmt (v, $4, $6, $8, ref None) } 
   | FOR name ASSIGN for_list DO stmts END
                                         { let v = makeExpr (Variable $2) in
-                                          ForStmtE(v, $4, $6) }
+                                          ForStmtE(v, $4, $6, ref None) }
   | CASE expr OF arms else_part END     { CaseStmt ($2, $4, $5) } ;
 
 for_list :

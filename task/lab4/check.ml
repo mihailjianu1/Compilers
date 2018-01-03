@@ -372,7 +372,7 @@ let rec check_stmt s env alloc =
         let d = make_def (intern "*upb*") VarDef integer in
         alloc d; upb := Some d
 
-    | ForStmtE (var, ls, body) ->
+    | ForStmtE (var, ls, body, p) ->
         let vt = check_expr var env in
         let t = List.map (fun d -> check_elem d env) ls in
         if not (same_type vt integer) then
@@ -381,6 +381,11 @@ let rec check_stmt s env alloc =
           sem_error "no init values in for" [];
         check_var var false;
         check_stmt body env alloc
+
+        (* Allocate space for hidden variable. In the code, this will
+         * be used to sabe the position in the list *)
+        let d = make_def (intern "*p*") VarDef integer in
+        alloc d; p := Some d
 
     | CaseStmt (sel, arms, deflt) ->
         let st = check_expr sel env in
