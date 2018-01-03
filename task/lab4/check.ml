@@ -298,8 +298,23 @@ let check_elem elem env =
       Arithmetic e -> 
         let t = check_expr e env in
         if not (same_type t integer) then
-          sem_error "type mismatch in for exression" []
-    | _ -> sem_error "not yet" []
+          sem_error "type mismatch in for expression" []
+
+    | While (expr, cond) ->
+        let ct = check_expr cond env in
+        if not (same_type ct boolean) then
+          sem_error "type mismatch in while condition" [];
+        let et = check_expr expr env in
+        if not (same_type et integer) then
+          sem_error "type mismtach in for expression" [];
+
+    | Step (init, step, until) ->
+        let it = check_expr init env in
+        let st = check_expr step env in
+        let ut = check_expr until env in
+        if not (same_type it integer) || not (same_type st integer) ||
+           not (same_type ut integer) then
+          sem_error "type mismatch infor expression" []
 
 (* |check_stmt| -- check and annotate a statement *)
 let rec check_stmt s env alloc =
@@ -380,10 +395,10 @@ let rec check_stmt s env alloc =
         if List.length t = 0 then
           sem_error "no init values in for" [];
         check_var var false;
-        check_stmt body env alloc
+        check_stmt body env alloc;
 
         (* Allocate space for hidden variable. In the code, this will
-         * be used to sabe the position in the list *)
+           be used to sabe the position in the list *)
         let d = make_def (intern "*p*") VarDef integer in
         alloc d; p := Some d
 
