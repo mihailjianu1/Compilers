@@ -319,7 +319,8 @@ let rec gen_stmt s =
             <JUMP l1>,
             <LABEL l2>>
       
-(*      | ForStmt (var, ls, body) ->*)
+      | ForStmt (var, ls, body, p) ->
+
                 
       | CaseStmt (sel, arms, deflt) ->
           (* Use one jump table, and hope it is reasonably compact *)
