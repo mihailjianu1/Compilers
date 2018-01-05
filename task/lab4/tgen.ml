@@ -249,6 +249,22 @@ let gen_jtable sel table0 deflab =
       <BINOP Minus, sel, <CONST lobound>>>
   end
 
+let get = function
+    Some x -> x
+  | _ -> failwith "for"
+
+let gen_elem body next var ((e, lab), lab') = 
+  match e with 
+      Artithmetic ex ->
+        <SEQ,
+          <LABEL lab>
+          gen_expr ex,
+          <STOREW, gen_expr ex, gen_addr var>,
+          <JUMP body>,
+          <LABEL lab'>,
+          <JUMP next>>
+    | _ -> failwith "not implemented"
+
 (* |gen_stmt| -- generate code for a statement *)
 let rec gen_stmt s = 
   let code =
@@ -307,7 +323,7 @@ let rec gen_stmt s =
       | ForStmt (var, lo, hi, body, upb) ->
           (* Use previously allocated temp variable to store upper bound.
              We could avoid this if the upper bound is constant. *)
-          let tmp = match !upb with Some d -> d | _ -> failwith "for" in
+          let tmp = get !upb in    
           let l1 = label () and l2 = label () in
           <SEQ,
             <STOREW, gen_expr lo, gen_addr var>,
@@ -319,8 +335,26 @@ let rec gen_stmt s =
             <JUMP l1>,
             <LABEL l2>>
       
-      | ForStmt (var, ls, body, p) ->
-
+      | ForStmt2 (var, ls, body, p) ->
+          let lab1 = label () and lab2 = label () in
+          let labs = List.map (fun x -> label ()) ls in
+          let labs' = List.map (fun x -> label ()) ls in 
+          let start = label () and exit_lab = label () in
+          let body = label () and next = label() in
+          let ls1 = List.combine (List.combine ls labs) labs' in
+          let code_ls = List.map (gen_elem body next var) ls1 in
+          <SEQ,
+            <STOREW, CONST 0, address (get !p)>,
+            <LABEL start>,
+            <JCASE (labs, exit_lab), <LOADW, address (get !p)>>,
+            <SEQ, @(code_ls)>,
+            <LABEL body>,
+            gen_stmt body
+            <JCASE (labs', exit_lab), <LOADW, address (get !p)>>,
+            <LABEL next>,
+            <STOREW, <BINOP Plus, <CONST 1>, <LOADW, address (get !p)>>, address (get !p)>
+            <JUMP start>
+            <LABEL exit_lab>>
                 
       | CaseStmt (sel, arms, deflt) ->
           (* Use one jump table, and hope it is reasonably compact *)
