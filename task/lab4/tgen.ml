@@ -255,9 +255,9 @@ let get = function
 
 let gen_elem body next var ((e, lab), lab') = 
   match e with 
-      Artithmetic ex ->
+      Arithmetic ex ->
         <SEQ,
-          <LABEL lab>
+          <LABEL lab>,
           gen_expr ex,
           <STOREW, gen_expr ex, gen_addr var>,
           <JUMP body>,
@@ -335,25 +335,24 @@ let rec gen_stmt s =
             <JUMP l1>,
             <LABEL l2>>
       
-      | ForStmt2 (var, ls, body, p) ->
-          let lab1 = label () and lab2 = label () in
+      | ForStmtE (var, ls, body, p) ->
           let labs = List.map (fun x -> label ()) ls in
           let labs' = List.map (fun x -> label ()) ls in 
           let start = label () and exit_lab = label () in
-          let body = label () and next = label() in
+          let body_lab = label () and next = label() in
           let ls1 = List.combine (List.combine ls labs) labs' in
-          let code_ls = List.map (gen_elem body next var) ls1 in
+          let code_ls = List.map (gen_elem body_lab next var) ls1 in
           <SEQ,
-            <STOREW, CONST 0, address (get !p)>,
+            <STOREW, <CONST 0>, address (get !p)>,
             <LABEL start>,
             <JCASE (labs, exit_lab), <LOADW, address (get !p)>>,
             <SEQ, @(code_ls)>,
-            <LABEL body>,
-            gen_stmt body
+            <LABEL body_lab>,
+            gen_stmt body,
             <JCASE (labs', exit_lab), <LOADW, address (get !p)>>,
             <LABEL next>,
-            <STOREW, <BINOP Plus, <CONST 1>, <LOADW, address (get !p)>>, address (get !p)>
-            <JUMP start>
+            <STOREW, <BINOP Plus, <CONST 1>, <LOADW, address (get !p)>>, address (get !p)>,
+            <JUMP start>,
             <LABEL exit_lab>>
                 
       | CaseStmt (sel, arms, deflt) ->
