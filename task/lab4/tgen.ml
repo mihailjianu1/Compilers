@@ -55,7 +55,7 @@ let address d =
         <OFFSET, schain (!level - d.d_level), <CONST off>>
     | Register i ->
         <REGVAR i>
-    | Nowhere -> 
+    | Nowhere ->
         failwith (sprintf "address $" [fId d.d_tag])
 
 (* |gen_closure| -- two trees for a (code, envt) pair *)
@@ -258,11 +258,18 @@ let gen_elem body next var ((e, lab), lab') =
       Arithmetic ex ->
         <SEQ,
           <LABEL lab>,
-          gen_expr ex,
           <STOREW, gen_expr ex, gen_addr var>,
           <JUMP body>,
           <LABEL lab'>,
           <JUMP next>>
+    | While (ex, co) ->
+        <SEQ, 
+          <LABEL lab>,
+          <LABEL lab'>,
+          <STOREW, gen_expr ex, gen_addr var>,
+          gen_cond co body next,
+          <JUMP body>>
+
     | _ -> failwith "not implemented"
 
 (* |gen_stmt| -- generate code for a statement *)
