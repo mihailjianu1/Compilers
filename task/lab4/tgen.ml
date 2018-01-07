@@ -270,7 +270,23 @@ let gen_elem body next var ((e, lab), lab') =
           gen_cond co body next,
           <JUMP body>>
 
-    | _ -> failwith "not implemented"
+    | Step (init, step, until) ->
+        let l1 = label () and l2 = label () and l3 = label () in
+        <SEQ,
+          <LABEL lab>,
+          <STOREW, gen_expr init, gen_addr var>,
+          <LABEL l3>,
+          <JUMPC (Leq, l1), gen_expr step, <CONST 0>>,
+          <JUMPC (Leq, l2), gen_expr var, gen_expr until>,
+          <JUMP next>,
+          <LABEL l1>,
+          <JUMPC (Geq, l2), gen_expr var, gen_expr until>,
+          <JUMP next>,
+          <LABEL l2>,
+          <JUMP body>,
+          <LABEL lab'>,
+          <STOREW, <BINOP Plus, gen_expr var, gen_expr step>, gen_addr var>,
+          <JUMP l3>>
 
 (* |gen_stmt| -- generate code for a statement *)
 let rec gen_stmt s = 
