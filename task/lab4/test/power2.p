@@ -1,7 +1,7 @@
 var k: integer;
-
 begin
-  for k := 10 step 10 until 100 do
+  k := 1;
+  for k := 2 * k while k < 1000 do
     print_num(k);
     newline();
   end;
