@@ -262,6 +262,7 @@ let gen_elem body next var ((e, lab), lab') =
           <JUMP body>,
           <LABEL lab'>,
           <JUMP next>>
+
     | While (ex, co) ->
         <SEQ, 
           <LABEL lab>,
@@ -342,22 +343,7 @@ let rec gen_stmt s =
             gen_stmt body, 
             gen_cond test l2 l1,
             <LABEL l2>>
-
-      | ForStmt (var, lo, hi, body, upb) ->
-          (* Use previously allocated temp variable to store upper bound.
-             We could avoid this if the upper bound is constant. *)
-          let tmp = get !upb in    
-          let l1 = label () and l2 = label () in
-          <SEQ,
-            <STOREW, gen_expr lo, gen_addr var>,
-            <STOREW, gen_expr hi, address tmp>,
-            <LABEL l1>,
-            <JUMPC (Gt, l2), gen_expr var, <LOADW, address tmp>>,
-            gen_stmt body,
-            <STOREW, <BINOP Plus, gen_expr var, <CONST 1>>, gen_addr var>,
-            <JUMP l1>,
-            <LABEL l2>>
-      
+     
       | ForStmtE (var, ls, body, p) ->
           let labs = List.map (fun x -> label ()) ls in
           let labs' = List.map (fun x -> label ()) ls in 
@@ -365,19 +351,28 @@ let rec gen_stmt s =
           let body_lab = label () and next = label() in
           let ls1 = List.combine (List.combine ls labs) labs' in
           let code_ls = List.map (gen_elem body_lab next var) ls1 in
-          <SEQ,
-            <STOREW, <CONST 0>, address (get !p)>,
-            <LABEL start>,
-            <JCASE (labs, exit_lab), <LOADW, address (get !p)>>,
-            <SEQ, @(code_ls)>,
-            <LABEL body_lab>,
-            gen_stmt body,
-            <JCASE (labs', exit_lab), <LOADW, address (get !p)>>,
-            <LABEL next>,
-            <STOREW, <BINOP Plus, <CONST 1>, <LOADW, address (get !p)>>, address (get !p)>,
-            <JUMP start>,
-            <LABEL exit_lab>>
-                
+          (match List.length ls with
+            1 ->  <SEQ, 
+                  <SEQ, @(code_ls)>,
+                  <LABEL body_lab>,
+                  gen_stmt body,
+                  <JUMP (List.hd labs')>,
+                  <LABEL next>>
+
+            |  _ -> <SEQ,
+                    <STOREW, <CONST 0>, address (get !p)>,
+                    <LABEL start>,
+                    <JCASE (labs, exit_lab), <LOADW, address (get !p)>>,
+                    <SEQ, @(code_ls)>,
+                    <LABEL body_lab>,
+                    gen_stmt body,
+                    <JCASE (labs', exit_lab), <LOADW, address (get !p)>>,
+                    <LABEL next>,
+                    <STOREW, <BINOP Plus, <CONST 1>, <LOADW, address (get !p)>>, address (get !p)>,
+                    <JUMP start>,
+                    <LABEL exit_lab>>      )
+                   
+                        
       | CaseStmt (sel, arms, deflt) ->
           (* Use one jump table, and hope it is reasonably compact *)
           let deflab = label () and donelab = label () in

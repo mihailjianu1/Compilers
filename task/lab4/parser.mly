@@ -119,7 +119,7 @@ stmt1 :
   | REPEAT stmts UNTIL expr             { RepeatStmt ($2, $4) }
   | FOR name ASSIGN expr TO expr DO stmts END 
                                         { let v = makeExpr (Variable $2) in
-                                          ForStmt (v, $4, $6, $8, ref None) } 
+                                          ForStmtE (v, [Step ($4, const 1 integer, $6)], $8, ref None) } 
   | FOR name ASSIGN for_list DO stmts END
                                         { let v = makeExpr (Variable $2) in
                                           ForStmtE(v, $4, $6, ref None) }

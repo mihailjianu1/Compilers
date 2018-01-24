@@ -372,21 +372,6 @@ let rec check_stmt s env alloc =
         if not (same_type ct boolean) then
           sem_error "type mismatch in repeat statement" []
 
-    | ForStmt (var, lo, hi, body, upb) ->
-        let vt = check_expr var env in
-        let lot = check_expr lo env in
-        let hit = check_expr hi env in
-        if not (same_type vt integer) || not (same_type lot integer)
-            || not (same_type hit integer) then
-          sem_error "type mismatch in for statement" [];
-        check_var var false;
-        check_stmt body env alloc;
-
-        (* Allocate space for hidden variable.  In the code, this will
-           be used to save the upper bound.  *)
-        let d = make_def (intern "*upb*") VarDef integer in
-        alloc d; upb := Some d
-
     | ForStmtE (var, ls, body, p) ->
         let vt = check_expr var env in
         let t = List.map (fun d -> check_elem d env) ls in

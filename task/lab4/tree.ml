@@ -37,7 +37,6 @@ and stmt_guts =
   | IfStmt of expr * stmt * stmt
   | WhileStmt of expr * stmt
   | RepeatStmt of stmt * expr
-  | ForStmt of expr * expr * expr * stmt * def option ref
   | ForStmtE of expr * element list * stmt * def option ref
   | CaseStmt of expr * (expr * stmt) list * stmt
 
@@ -145,8 +144,6 @@ and fStmt s =
         fMeta "(WHILE $ $)" [fExpr test; fStmt body]
     | RepeatStmt (body, test) ->
         fMeta "(REPEAT $ $)" [fStmt body; fExpr test]
-    | ForStmt (var, lo, hi, body, _) ->
-        fMeta "(FOR $ $ $ $)" [fExpr var; fExpr lo; fExpr hi; fStmt body]
     | CaseStmt (sel, arms, deflt) ->
         let fArm (lab, body) = fMeta "($ $)" [fExpr lab; fStmt body] in
         fMeta "(CASE $ $ $)" [fExpr sel; fList(fArm) arms; fStmt deflt]
